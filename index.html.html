@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>觀察日誌｜放風箏</title>
+<style>
+:root{
+  --ink:#1c2733;--paper:#f6f4ee;--sky:#3d6b8e;--sky-soft:#e3ecf2;
+  --up:#c2413b;--down:#2e7d5b;--line:#d8d3c8;--muted:#7a7468;
+  --card:#fffdf8;--string:#b98a44;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;padding-bottom:90px}
+header{padding:22px 18px 14px;border-bottom:2px solid var(--ink);display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+header h1{font-size:20px;font-weight:700;letter-spacing:.12em}
+header h1 span{color:var(--string);font-size:13px;letter-spacing:.2em;display:block;margin-top:2px;font-weight:500}
+#exportBtn{background:none;border:1.5px solid var(--ink);border-radius:20px;padding:6px 14px;font-size:13px;color:var(--ink);cursor:pointer;white-space:nowrap}
+#exportBtn:active{background:var(--ink);color:var(--paper)}
+.tabs{display:flex;border-bottom:1px solid var(--line);background:var(--card);position:sticky;top:0;z-index:5}
+.tab{flex:1;text-align:center;padding:12px 4px;font-size:14px;color:var(--muted);border:none;background:none;cursor:pointer;position:relative;letter-spacing:.05em}
+.tab.active{color:var(--ink);font-weight:700}
+.tab.active::after{content:"";position:absolute;bottom:-1px;left:20%;right:20%;height:3px;background:var(--string);border-radius:2px}
+main{padding:16px;max-width:640px;margin:0 auto}
+.empty{text-align:center;padding:50px 20px;color:var(--muted);font-size:14px;line-height:2}
+.empty .kite{font-size:42px;display:block;margin-bottom:12px}
+.rec{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:12px;position:relative;border-left:4px solid var(--sky)}
+.rec-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.rec-stock{font-size:17px;font-weight:700}
+.rec-stock small{font-weight:400;color:var(--muted);margin-left:6px;font-size:13px}
+.rec-date{font-size:12px;color:var(--muted);white-space:nowrap}
+.rec-mid{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;align-items:center}
+.chip{font-size:12px;padding:3px 10px;border-radius:12px;background:var(--sky-soft);color:var(--sky);letter-spacing:.05em}
+.chip.ind{background:#f0e9dc;color:var(--string)}
+.price{font-size:14px;font-variant-numeric:tabular-nums}
+.pct{font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+.pct.u{color:var(--up)}.pct.d{color:var(--down)}.pct.f{color:var(--muted)}
+.rec-intel{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--sky-soft);font-size:13px;line-height:1.7;white-space:pre-wrap}
+.rec-intel .intel-date{font-size:11px;color:var(--sky);letter-spacing:.1em;display:block;margin-bottom:4px;font-weight:700}
+.rec-follow{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:13px;line-height:1.6}
+.rec-follow.pending{color:var(--muted);font-style:italic}
+.rec-follow b{color:var(--string);margin-right:4px}
+.rec-actions{display:flex;gap:6px;margin-top:12px;justify-content:flex-end}
+.mini{border:1px solid var(--line);background:var(--paper);border-radius:8px;font-size:12px;padding:5px 12px;color:var(--muted);cursor:pointer}
+.mini:active{background:var(--sky-soft)}
+.mini.ai{border-color:var(--sky);color:var(--sky);font-weight:700}
+.mini:disabled{opacity:.5}
+.grp{margin:20px 0 10px;display:flex;align-items:center;gap:10px}
+.grp h3{font-size:15px;font-weight:700;letter-spacing:.08em}
+.grp .cnt{font-size:12px;color:var(--muted)}
+.grp::after{content:"";flex:1;height:1px;background:var(--line)}
+.stat-row{display:flex;gap:14px;font-size:12px;color:var(--muted);margin:-4px 0 10px;flex-wrap:wrap}
+.stat-row b{color:var(--ink)}
+.tl{position:relative;padding-left:22px}
+.tl::before{content:"";position:absolute;left:6px;top:8px;bottom:8px;width:2px;background:repeating-linear-gradient(to bottom,var(--string) 0 6px,transparent 6px 11px)}
+.tl .rec::before{content:"";position:absolute;left:-21px;top:18px;width:9px;height:9px;background:var(--string);border-radius:50%;border:2px solid var(--paper)}
+.tl-date{font-size:13px;font-weight:700;color:var(--string);margin:16px 0 8px;letter-spacing:.1em}
+.fabs{position:fixed;bottom:24px;right:20px;display:flex;flex-direction:column;gap:12px;z-index:20}
+.fab{width:58px;height:58px;border-radius:50%;border:none;cursor:pointer;font-size:26px;line-height:1;box-shadow:0 4px 14px rgba(28,39,51,.3)}
+#addBtn{background:var(--ink);color:var(--paper)}
+.fab:active{transform:scale(.94)}
+#overlay{position:fixed;inset:0;background:rgba(28,39,51,.45);z-index:30;display:none;align-items:flex-end;justify-content:center}
+#overlay.show{display:flex}
+#sheet{background:var(--card);width:100%;max-width:640px;border-radius:20px 20px 0 0;padding:20px 18px 30px;max-height:88vh;overflow-y:auto}
+#sheet h2{font-size:17px;margin-bottom:16px;letter-spacing:.1em}
+.fld{margin-bottom:14px}
+.fld label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px;letter-spacing:.05em}
+.fld input,.fld textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:16px;background:var(--paper);color:var(--ink);font-family:inherit}
+.fld textarea{resize:vertical;min-height:60px}
+.fld input:focus,.fld textarea:focus{outline:none;border-color:var(--sky)}
+.half{display:flex;gap:10px}.half .fld{flex:1}
+.persona-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.pchip{font-size:13px;padding:6px 13px;border-radius:16px;border:1px solid var(--line);background:var(--paper);cursor:pointer}
+.pchip.sel{background:var(--sky);color:#fff;border-color:var(--sky)}
+.sheet-btns{display:flex;gap:10px;margin-top:18px}
+.sheet-btns button{flex:1;padding:13px;border-radius:12px;font-size:15px;cursor:pointer;letter-spacing:.1em}
+#saveBtn{background:var(--ink);color:var(--paper);border:none;font-weight:700}
+#cancelBtn{background:none;border:1px solid var(--line);color:var(--muted)}
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:9px 20px;border-radius:20px;font-size:13px;z-index:50;opacity:0;transition:opacity .25s;pointer-events:none;max-width:86vw;text-align:center}
+.toast.show{opacity:1}
+/* 截圖匯入確認 */
+#importPanel{background:var(--card);width:100%;max-width:640px;border-radius:20px 20px 0 0;padding:20px 18px 30px;max-height:88vh;overflow-y:auto}
+#importPanel h2{font-size:17px;margin-bottom:6px;letter-spacing:.1em}
+#importPanel p{font-size:13px;color:var(--muted);margin-bottom:14px}
+.imp-row{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px;background:var(--paper)}
+.imp-row .half input{font-size:14px;padding:8px 10px}
+.imp-del{float:right;border:none;background:none;color:var(--muted);font-size:16px;cursor:pointer}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--sky);border-top-color:transparent;border-radius:50%;animation:sp .8s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>觀察日誌<span>放風箏 · 標的出現紀錄</span></h1>
+  <button id="exportBtn">匯出 CSV</button>
+</header>
+
+<div class="tabs">
+  <button class="tab active" data-v="tl">時間軸</button>
+  <button class="tab" data-v="stock">依股票</button>
+  <button class="tab" data-v="persona">依人格型</button>
+</div>
+
+<main id="view"></main>
+
+<div class="fabs">
+  <button class="fab" id="pasteBtn" title="貼上匯入" style="background:var(--card);border:2px solid var(--string);font-size:22px">📋</button>
+  <button class="fab" id="addBtn" title="手動新增">＋</button>
+</div>
+
+<div id="overlay"><div id="sheet">
+  <h2 id="sheetTitle">新增觀察紀錄</h2>
+  <div class="half">
+    <div class="fld"><label>日期</label><input type="date" id="fDate"></div>
+    <div class="fld"><label>股票代號</label><input id="fCode" placeholder="2330" inputmode="numeric"></div>
+  </div>
+  <div class="fld"><label>股票名稱</label><input id="fName" placeholder="台積電"></div>
+  <div class="fld"><label>出現在哪個人格型</label><input id="fPersona" placeholder="例:上班族型"><div class="persona-chips" id="pchips"></div></div>
+  <div class="half">
+    <div class="fld"><label>當時股價</label><input id="fPrice" placeholder="1080" inputmode="decimal"></div>
+    <div class="fld"><label>當日漲跌 %</label><input id="fPct" placeholder="+1.5 或 -0.8"></div>
+  </div>
+  <div class="half">
+    <div class="fld"><label>買進日期(有交易才填)</label><input type="date" id="fBuyDate"></div>
+    <div class="fld"><label>買進價格</label><input id="fBuyPrice" inputmode="decimal"></div>
+  </div>
+  <div class="half">
+    <div class="fld"><label>賣出日期</label><input type="date" id="fSellDate"></div>
+    <div class="fld"><label>賣出價格</label><input id="fSellPrice" inputmode="decimal"></div>
+  </div>
+  <div class="fld"><label>後續追蹤結果(可之後再補)</label><textarea id="fFollow"></textarea></div>
+  <div class="sheet-btns"><button id="cancelBtn">取消</button><button id="saveBtn">存入日誌</button></div>
+</div></div>
+
+<div id="overlay2" style="position:fixed;inset:0;background:rgba(28,39,51,.45);z-index:31;display:none;align-items:flex-end;justify-content:center">
+  <div id="importPanel">
+    <h2>截圖辨識結果</h2>
+    <p>請確認/修正後存入。人格型欄請填這批標的出現的人格型。</p>
+    <div class="fld"><label>這批標的的人格型</label><input id="impPersona" placeholder="例:上班族型"><div class="persona-chips" id="impChips"></div></div>
+    <div class="fld"><label>日期</label><input type="date" id="impDate"></div>
+    <div id="impRows"></div>
+    <div class="sheet-btns"><button id="impCancel" style="background:none;border:1px solid var(--line);color:var(--muted)">取消</button><button id="impSave" style="background:var(--ink);color:var(--paper);border:none;font-weight:700">全部存入</button></div>
+  </div>
+</div>
+<div id="overlay3" style="position:fixed;inset:0;background:rgba(28,39,51,.45);z-index:32;display:none;align-items:flex-end;justify-content:center">
+  <div style="background:var(--card);width:100%;max-width:640px;border-radius:20px 20px 0 0;padding:20px 18px 30px">
+    <h2 style="font-size:17px;margin-bottom:6px;letter-spacing:.1em">貼上匯入</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:10px">把 Claude 整理的 JSON 整段貼在下面(從 [ 到 ])</p>
+    <textarea id="pasteBox" style="width:100%;min-height:150px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:13px;background:var(--paper);color:var(--ink);font-family:monospace" placeholder='[{"code":"2330",...}]'></textarea>
+    <div class="sheet-btns">
+      <button id="pasteCancel" style="background:none;border:1px solid var(--line);color:var(--muted)">取消</button>
+      <button id="pasteGo" style="background:var(--ink);color:var(--paper);border:none;font-weight:700">解析匯入</button>
+    </div>
+  </div>
+</div>
+<div id="overlay4" style="position:fixed;inset:0;background:rgba(28,39,51,.45);z-index:32;display:none;align-items:flex-end;justify-content:center">
+  <div style="background:var(--card);width:100%;max-width:640px;border-radius:20px 20px 0 0;padding:20px 18px 30px">
+    <h2 style="font-size:17px;margin-bottom:10px;letter-spacing:.1em" id="intelTitle">情報備註</h2>
+    <textarea id="intelBox" style="width:100%;min-height:130px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:var(--paper);color:var(--ink);font-family:inherit" placeholder="產業/近期新聞,可從 Claude 對話複製貼上"></textarea>
+    <div class="sheet-btns">
+      <button id="intelCancel" style="background:none;border:1px solid var(--line);color:var(--muted)">取消</button>
+      <button id="intelSave" style="background:var(--ink);color:var(--paper);border:none;font-weight:700">儲存</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY='kite-journal-v1';
+let recs=[],curView='tl',editId=null,impData=[];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const today=()=>new Date().toISOString().slice(0,10);
+
+async function load(){
+  try{
+    if(typeof window.storage!=='undefined'&&window.storage.get){
+      const r=await window.storage.get(KEY);recs=JSON.parse(r.value);
+    }else{
+      recs=JSON.parse(localStorage.getItem(KEY)||'[]');
+    }
+  }catch(e){recs=[];}
+  render();
+}
+async function save(){
+  try{
+    if(typeof window.storage!=='undefined'&&window.storage.set){
+      await window.storage.set(KEY,JSON.stringify(recs));
+    }else{
+      localStorage.setItem(KEY,JSON.stringify(recs));
+    }
+  }catch(e){toast('儲存失敗,建議先匯出 CSV 備份');}
+}
+function toast(m,long){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),long?3500:1800);}
+function personas(){return [...new Set(recs.map(r=>r.persona).filter(Boolean))];}
+function pctClass(p){if(!p)return 'f';const n=parseFloat(String(p).replace('+',''));return isNaN(n)||n===0?'f':(n>0?'u':'d');}
+function pctText(p){if(!p)return '';let s=String(p).trim();if(!s.startsWith('+')&&!s.startsWith('-')&&parseFloat(s)>0)s='+'+s;return s.endsWith('%')?s:s+'%';}
+
+/* ── 貼上匯入(從Claude對話複製) ── */
+$('pasteBtn').onclick=()=>{$('pasteBox').value='';$('overlay3').style.display='flex';setTimeout(()=>$('pasteBox').focus(),100);};
+$('pasteCancel').onclick=()=>$('overlay3').style.display='none';
+$('pasteGo').onclick=()=>{
+  const txt=$('pasteBox').value;
+  if(!txt.trim()){toast('請先貼上內容');return;}
+  try{
+    const clean=txt.replace(/```json|```/g,'').trim();
+    const arr=JSON.parse(clean);
+    impData=Array.isArray(arr)?arr:[arr];
+    if(!impData.length){toast('沒有可匯入的資料');return;}
+    $('overlay3').style.display='none';
+    openImport();
+  }catch(e){toast('格式無法解析,請確認從 [ 複製到 ] 完整貼上',true);}
+};
+
+function openImport(){
+  $('impDate').value=today();
+  const detected=impData.find(d=>d.persona)?.persona||'';
+  $('impPersona').value=detected;
+  const ic=$('impChips');ic.innerHTML='';
+  for(const p of personas()){
+    const b=document.createElement('button');b.className='pchip';b.textContent=p;
+    b.onclick=()=>{$('impPersona').value=p;ic.querySelectorAll('.pchip').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');};
+    ic.appendChild(b);
+  }
+  renderImpRows();
+  $('overlay2').style.display='flex';
+}
+function renderImpRows(){
+  $('impRows').innerHTML=impData.map((d,i)=>`<div class="imp-row">
+    <button class="imp-del" onclick="impDel(${i})">✕</button>
+    <div class="half">
+      <div class="fld"><label>代號</label><input value="${esc(d.code)}" onchange="impData[${i}].code=this.value"></div>
+      <div class="fld"><label>名稱</label><input value="${esc(d.name)}" onchange="impData[${i}].name=this.value"></div>
+    </div>
+    <div class="half" style="margin-bottom:-8px">
+      <div class="fld"><label>股價</label><input value="${esc(d.price)}" onchange="impData[${i}].price=this.value"></div>
+      <div class="fld"><label>漲跌%</label><input value="${esc(d.pct)}" onchange="impData[${i}].pct=this.value"></div>
+    </div>
+  </div>`).join('');
+}
+window.impDel=i=>{impData.splice(i,1);renderImpRows();};
+$('impCancel').onclick=()=>$('overlay2').style.display='none';
+$('impSave').onclick=async()=>{
+  const p=$('impPersona').value.trim(),d=$('impDate').value||today();
+  for(const it of impData){
+    if(!it.code)continue;
+    recs.push({id:'r'+Date.now()+Math.random().toString(36).slice(2,6),ts:Date.now(),
+      date:d,code:String(it.code).trim(),name:(it.name||'').trim(),
+      persona:p||it.persona||'',price:String(it.price||'').trim(),pct:String(it.pct||'').trim(),
+      follow:'',intel:it.intel?{date:d,text:String(it.intel)}:null});
+  }
+  await save();$('overlay2').style.display='none';render();
+  toast('已匯入 '+impData.length+' 筆 🪁');
+};
+
+/* ── 情報備註(手動/由Claude對話帶入) ── */
+let intelId=null;
+window.fetchIntel=id=>{
+  const r=recs.find(x=>x.id===id);if(!r)return;
+  intelId=id;
+  $('intelTitle').textContent='情報備註 · '+r.code+' '+(r.name||'');
+  $('intelBox').value=r.intel?r.intel.text:'';
+  $('overlay4').style.display='flex';
+};
+$('intelCancel').onclick=()=>$('overlay4').style.display='none';
+$('intelSave').onclick=async()=>{
+  const r=recs.find(x=>x.id===intelId);if(!r)return;
+  const txt=$('intelBox').value.trim();
+  r.intel=txt?{date:r.intel?.date||today(),text:txt}:null;
+  await save();$('overlay4').style.display='none';render();toast('情報已更新');
+};
+
+/* ── 卡片 ── */
+function tradeInfo(r){
+  if(!r.buyPrice&&!r.buyDate)return {status:'觀察',html:''};
+  const bp=parseFloat(r.buyPrice),sp=parseFloat(r.sellPrice);
+  let status=r.sellPrice?'已出場':'持有',ret='';
+  if(!isNaN(bp)&&!isNaN(sp)&&bp>0){
+    const pct=((sp-bp)/bp*100);
+    ret=` <span class="pct ${pct>0?'u':(pct<0?'d':'f')}">${pct>0?'+':''}${pct.toFixed(1)}%</span>`;
+  }
+  const html=`<div class="rec-follow"><b>交易</b>${r.buyDate?esc(r.buyDate)+' 買 '+esc(r.buyPrice):''}${r.sellDate?' → '+esc(r.sellDate)+' 賣 '+esc(r.sellPrice):''}${ret}</div>`;
+  return {status,html};
+}
+function recCard(r,showDate=true){
+  const industry=r.intel?(r.intel.text.match(/產業[:：]\s*(.+)/)?.[1]||''):'';
+  const trade=tradeInfo(r);
+  const intelHtml=r.intel?`<div class="rec-intel"><span class="intel-date">情報快照 · ${esc(r.intel.date)}</span>${esc(r.intel.text)}</div>`:'';
+  const followHtml=r.follow?`<div class="rec-follow"><b>追蹤</b>${esc(r.follow)}</div>`:`<div class="rec-follow pending">尚未回填追蹤結果</div>`;
+  return `<div class="rec">
+    <div class="rec-top">
+      <div class="rec-stock">${esc(r.code)}<small>${esc(r.name)}</small></div>
+      ${showDate?`<div class="rec-date">${esc(r.date)}</div>`:''}
+    </div>
+    <div class="rec-mid">
+      <span class="chip">${esc(r.persona||'未分類')}</span>
+      ${trade.status!=='觀察'?`<span class="chip" style="background:${trade.status==='持有'?'#f0e9dc':'var(--sky-soft)'};color:${trade.status==='持有'?'var(--string)':'var(--muted)'};font-weight:700">${trade.status}</span>`:''}
+      ${industry?`<span class="chip ind">${esc(industry.slice(0,14))}</span>`:''}
+      ${r.price?`<span class="price">$${esc(r.price)}</span>`:''}
+      ${r.pct?`<span class="pct ${pctClass(r.pct)}">${esc(pctText(r.pct))}</span>`:''}
+    </div>
+    ${intelHtml}${trade.html}${followHtml}
+    <div class="rec-actions">
+      <a class="mini" style="text-decoration:none" href="https://www.wantgoo.com/stock/${esc(r.code)}/technical-chart" target="_blank" rel="noopener">K線</a>
+      <a class="mini" style="text-decoration:none" href="https://www.google.com/search?q=${esc(r.code)}+${encodeURIComponent(r.name||'')}+%E8%82%A1&tbm=nws" target="_blank" rel="noopener">新聞</a>
+      <button class="mini ai" data-intel="${r.id}" onclick="fetchIntel('${r.id}')">${r.intel?'改情報':'加情報'}</button>
+      <button class="mini" onclick="editRec('${r.id}')">編輯</button>
+      <button class="mini" onclick="delRec('${r.id}')">刪除</button>
+    </div>
+  </div>`;
+}
+
+function render(){
+  const v=$('view');
+  if(!recs.length){
+    v.innerHTML=`<div class="empty"><span class="kite">🪁</span>還沒有紀錄。<br>截圖傳給 Claude 討論後,<br>按「📋」貼上匯入,或按「＋」手動記錄。</div>`;return;
+  }
+  const sorted=[...recs].sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts);
+  if(curView==='tl'){
+    let html='<div class="tl">',last='';
+    for(const r of sorted){if(r.date!==last){html+=`<div class="tl-date">${esc(r.date)}</div>`;last=r.date;}html+=recCard(r,false);}
+    v.innerHTML=html+'</div>';
+  }else if(curView==='stock'){
+    const g={};for(const r of sorted){const k=r.code+'｜'+r.name;(g[k]=g[k]||[]).push(r);}
+    let html='';
+    for(const k of Object.keys(g).sort((a,b)=>g[b].length-g[a].length)){
+      const arr=g[k],ps=[...new Set(arr.map(r=>r.persona).filter(Boolean))];
+      html+=`<div class="grp"><h3>${esc(k)}</h3><span class="cnt">出現 ${arr.length} 次</span></div>
+      <div class="stat-row"><span>人格型:<b>${esc(ps.join('、')||'—')}</b></span><span>首次 <b>${esc(arr[arr.length-1].date)}</b></span><span>最近 <b>${esc(arr[0].date)}</b></span></div>`;
+      html+=arr.map(r=>recCard(r)).join('');
+    }
+    v.innerHTML=html;
+  }else{
+    const g={};for(const r of sorted){const k=r.persona||'未分類';(g[k]=g[k]||[]).push(r);}
+    let html='';
+    for(const k of Object.keys(g).sort((a,b)=>g[b].length-g[a].length)){
+      const arr=g[k],stocks=[...new Set(arr.map(r=>r.code))];
+      html+=`<div class="grp"><h3>${esc(k)}</h3><span class="cnt">${arr.length} 筆</span></div>
+      <div class="stat-row"><span>涵蓋 <b>${stocks.length}</b> 檔標的</span><span>最近出現 <b>${esc(arr[0].date)}</b></span></div>`;
+      html+=arr.map(r=>recCard(r)).join('');
+    }
+    v.innerHTML=html;
+  }
+}
+
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');curView=t.dataset.v;render();
+});
+
+/* 手動表單 */
+function openSheet(r){
+  editId=r?r.id:null;
+  $('sheetTitle').textContent=r?'編輯紀錄':'新增觀察紀錄';
+  $('fDate').value=r?r.date:today();
+  $('fCode').value=r?r.code:'';$('fName').value=r?r.name:'';
+  $('fPersona').value=r?r.persona:'';$('fPrice').value=r?r.price:'';
+  $('fPct').value=r?r.pct:'';$('fFollow').value=r?r.follow:'';
+  $('fBuyDate').value=r?.buyDate||'';$('fBuyPrice').value=r?.buyPrice||'';
+  $('fSellDate').value=r?.sellDate||'';$('fSellPrice').value=r?.sellPrice||'';
+  const pc=$('pchips');pc.innerHTML='';
+  for(const p of personas()){
+    const b=document.createElement('button');b.className='pchip';b.textContent=p;
+    if(r&&r.persona===p)b.classList.add('sel');
+    b.onclick=()=>{$('fPersona').value=p;pc.querySelectorAll('.pchip').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');};
+    pc.appendChild(b);
+  }
+  $('overlay').classList.add('show');
+}
+$('addBtn').onclick=()=>openSheet(null);
+$('cancelBtn').onclick=()=>$('overlay').classList.remove('show');
+$('overlay').onclick=e=>{if(e.target.id==='overlay')$('overlay').classList.remove('show');};
+$('saveBtn').onclick=async()=>{
+  const code=$('fCode').value.trim();if(!code){toast('請填股票代號');return;}
+  const data={date:$('fDate').value||today(),code,name:$('fName').value.trim(),
+    persona:$('fPersona').value.trim(),price:$('fPrice').value.trim(),
+    pct:$('fPct').value.trim(),follow:$('fFollow').value.trim(),
+    buyDate:$('fBuyDate').value||'',buyPrice:$('fBuyPrice').value.trim(),
+    sellDate:$('fSellDate').value||'',sellPrice:$('fSellPrice').value.trim()};
+  if(editId){const i=recs.findIndex(r=>r.id===editId);recs[i]={...recs[i],...data};toast('已更新');}
+  else{recs.push({id:'r'+Date.now()+Math.random().toString(36).slice(2,6),ts:Date.now(),intel:null,...data});toast('已存入日誌 🪁');}
+  await save();$('overlay').classList.remove('show');render();
+};
+window.editRec=id=>openSheet(recs.find(r=>r.id===id));
+let delArm=null;
+window.delRec=async id=>{
+  if(delArm!==id){delArm=id;toast('再按一次「刪除」確認');setTimeout(()=>{if(delArm===id)delArm=null;},3000);return;}
+  delArm=null;recs=recs.filter(r=>r.id!==id);await save();render();toast('已刪除');
+};
+
+/* CSV */
+$('exportBtn').onclick=()=>{
+  if(!recs.length){toast('目前沒有紀錄');return;}
+  const head=['日期','代號','名稱','人格型','當時股價','漲跌%','情報日期','情報內容','追蹤結果','買進日期','買進價','賣出日期','賣出價'];
+  const rows=recs.slice().sort((a,b)=>a.date.localeCompare(b.date))
+    .map(r=>[r.date,r.code,r.name,r.persona,r.price,r.pct,r.intel?.date||'',r.intel?.text||'',r.follow,r.buyDate||'',r.buyPrice||'',r.sellDate||'',r.sellPrice||'']
+    .map(x=>'"'+String(x??'').replace(/"/g,'""')+'"').join(','));
+  const csv='\uFEFF'+head.join(',')+'\n'+rows.join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='放風箏觀察日誌_'+today()+'.csv';a.click();
+};
+
+load();
+</script>
+</body>
+</html>
