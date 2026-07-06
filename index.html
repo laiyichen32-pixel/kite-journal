@@ -302,6 +302,8 @@ function recCard(r,showDate=true){
     </div>
     ${intelHtml}${trade.html}${followHtml}
     <div class="rec-actions">
+      <a class="mini" style="text-decoration:none" href="https://www.wantgoo.com/stock/${esc(r.code)}/technical-chart" target="_blank" rel="noopener">K線</a>
+      <a class="mini" style="text-decoration:none" href="https://www.google.com/search?q=${esc(r.code)}+${encodeURIComponent(r.name||'')}+%E8%82%A1&tbm=nws" target="_blank" rel="noopener">新聞</a>
       <button class="mini ai" data-intel="${r.id}" onclick="fetchIntel('${r.id}')">${r.intel?'改情報':'加情報'}</button>
       <button class="mini" onclick="editRec('${r.id}')">編輯</button>
       <button class="mini" onclick="delRec('${r.id}')">刪除</button>
